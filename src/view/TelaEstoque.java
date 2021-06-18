@@ -5,8 +5,10 @@
  */
 package view;
 
+import controller.FornecedorController;
 import controller.ProdutoController;
 import dao.ExceptionDao;
+import dao.FornecedorDao;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -14,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import model.Fornecedor;
 import model.Produto;
 
 /**
@@ -56,18 +59,40 @@ public class TelaEstoque extends javax.swing.JFrame {
 
         jTableProdutos.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "NOME", "FORNECEDOR", "NCM", "PREÇO", "COD DE BARRAS"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(jTableProdutos);
 
-        jTextFieldBuscaProduto.setText("jTextField1");
+        jComboBoxFornecedor.addAncestorListener(new javax.swing.event.AncestorListener() {
+            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
+            }
+            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
+                jComboBoxFornecedorAncestorAdded(evt);
+            }
+            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
+            }
+        });
+        jComboBoxFornecedor.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxFornecedorActionPerformed(evt);
+            }
+        });
+
         jTextFieldBuscaProduto.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 jTextFieldBuscaProdutoKeyReleased(evt);
@@ -117,8 +142,9 @@ public class TelaEstoque extends javax.swing.JFrame {
             ArrayList<Produto> listaVet = pControl.listarProdutos(jTextFieldBuscaProduto.getText());
             Iterator<Produto> iterator = listaVet.iterator();
             while (iterator.hasNext()) {
-                Produto p = iterator.next();
-                tableModel.addRow(new Object[]{p.getIdProd(), p.getNomeProd(), p.getCodFornecedor(), p.getNcmProd(), p.getValorProd(), p.getCodBarrasProd()});
+                Produto p = iterator.next();                
+               
+                tableModel.addRow(new Object[]{p.getNomeProd(), p.getCodFornecedor(), p.getNcmProd(), p.getValorProd(), p.getCodBarrasProd()});
             }
         } catch (ExceptionDao e) {
             JOptionPane.showMessageDialog(null, "Erro ao realizar a busca: " + e);
@@ -126,6 +152,56 @@ public class TelaEstoque extends javax.swing.JFrame {
             Logger.getLogger(TelaEstoque.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jTextFieldBuscaProdutoKeyReleased
+
+    private void jComboBoxFornecedorAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_jComboBoxFornecedorAncestorAdded
+        // TODO add your handling code here:
+        DefaultTableModel tableModel = (DefaultTableModel) jTableProdutos.getModel();
+        while (tableModel.getRowCount() > 0) {
+            tableModel.removeRow(0);
+        }
+        FornecedorDao fDao = new FornecedorDao();
+        try {
+            ArrayList<Fornecedor> listaFornecedores = fDao.listarFornecedores();
+            jComboBoxFornecedor.removeAll();
+            for (Fornecedor f : listaFornecedores) {
+                jComboBoxFornecedor.addItem(f.getNomeForn());
+            }
+        } catch (ExceptionDao ex) {
+            Logger.getLogger(TelaEstoque.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }//GEN-LAST:event_jComboBoxFornecedorAncestorAdded
+
+    private void jComboBoxFornecedorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxFornecedorActionPerformed
+        String fornComboSelecionado = jComboBoxFornecedor.getSelectedItem().toString();
+        System.out.println("fornComboSelecionado" + fornComboSelecionado);
+        DefaultTableModel tableModel = (DefaultTableModel) jTableProdutos.getModel();
+        while (tableModel.getRowCount() > 0) {
+            tableModel.removeRow(0);
+        }
+        ProdutoController pControl = new ProdutoController();
+        ArrayList<Produto> listaProd = null;
+        if (fornComboSelecionado.equals("TODOS")) {
+            try {
+                listaProd = pControl.listarProdutos();
+            } catch (ExceptionDao | SQLException ex) {
+                Logger.getLogger(TelaEstoque.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            try {
+                listaProd = pControl.listarProdutosPorFornecdor(fornComboSelecionado);
+            } catch (ExceptionDao | SQLException ex) {
+                Logger.getLogger(TelaEstoque.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        Iterator<Produto> iterator = listaProd.iterator();
+        while (iterator.hasNext()) {
+            Produto p = iterator.next();
+            
+            tableModel.addRow(new Object[]{p.getNomeProd(), p.getCodFornecedor(), p.getNcmProd(), p.getValorProd(), p.getCodBarrasProd()});
+            
+        }
+    }//GEN-LAST:event_jComboBoxFornecedorActionPerformed
 
     /**
      * @param args the command line arguments
@@ -141,16 +217,24 @@ public class TelaEstoque extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
+
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(TelaEstoque.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TelaEstoque.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(TelaEstoque.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TelaEstoque.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(TelaEstoque.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TelaEstoque.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(TelaEstoque.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TelaEstoque.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 

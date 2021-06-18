@@ -75,4 +75,12 @@ public class Produto {
         return new ProdutoDao().listarProdutos(nome);
     }
     
+    public ArrayList<Produto> listarProdutosPorFornecedor(String nome) throws ExceptionDao, SQLException{
+        return new ProdutoDao().listarProdutosPorFornecedor(nome);
+    }
+    
+    public ArrayList<Produto> listarProdutos() throws ExceptionDao, SQLException{
+        return new ProdutoDao().listarProdutos();
+    }
+    
 }

@@ -18,6 +18,51 @@ import model.Produto;
  */
 public class ProdutoDao {
 
+    public ArrayList<Produto> listarProdutos() throws ExceptionDao, SQLException {
+        Connection con = ConnectionFactory.getConnection();
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        ArrayList<Produto> listaProdutos = new ArrayList<>();
+        try {
+            st = con.prepareStatement("SELECT * FROM produto order by nomeProd");
+            rs = st.executeQuery();
+            if (rs != null) {
+                while (rs.next()) {
+                    Produto p = new Produto();
+                    p.setIdProd(rs.getInt("idProd"));
+                    p.setNomeProd(rs.getString("nomeProd"));
+                    p.setCodBarrasProd(rs.getString("codBarrasProd"));
+                    p.setValorProd(rs.getDouble("valor"));
+                    p.setCodFornecedor(rs.getInt("idFornecedor"));
+                    p.setNcmProd(rs.getString("ncmProd"));
+                    listaProdutos.add(p);
+                }
+            }
+            return listaProdutos;
+        } catch (SQLException e) {
+            throw new ExceptionDao("Erro buscar veterinario específico" + e);
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException ex) {
+                }
+            }
+            if (st != null) {
+                try {
+                    st.close();
+                } catch (SQLException ex) {
+                }
+            }
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                }
+            }
+        }
+    }
+
     public ArrayList<Produto> listarProdutos(String nome) throws ExceptionDao, SQLException {
         Connection con = ConnectionFactory.getConnection();
         PreparedStatement st = null;
@@ -34,7 +79,59 @@ public class ProdutoDao {
                     p.setCodBarrasProd(rs.getString("codBarrasProd"));
                     p.setValorProd(rs.getDouble("valor"));
                     p.setCodFornecedor(rs.getInt("idFornecedor"));
+                    p.setNcmProd(rs.getString("ncmProd"));
                     listaProdutos.add(p);
+                }
+            }
+            return listaProdutos;
+        } catch (SQLException e) {
+            throw new ExceptionDao("Erro buscar veterinario específico" + e);
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException ex) {
+                }
+            }
+            if (st != null) {
+                try {
+                    st.close();
+                } catch (SQLException ex) {
+                }
+            }
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                }
+            }
+        }
+
+    }
+
+    public ArrayList<Produto> listarProdutosPorFornecedor(String nome) throws ExceptionDao, SQLException {
+        Connection con = ConnectionFactory.getConnection();
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        ArrayList<Produto> listaProdutos = new ArrayList<>();
+        try {
+            st = con.prepareStatement("SELECT * FROM vet.produto as p, vet.fornecedor as f where f.idForn = p.idFornecedor and f.nomeForn like '%" + nome + "%' order by p.nomeProd");
+            rs = st.executeQuery();
+            if (rs != null) {
+                while (rs.next()) {
+                    Produto p = new Produto();
+                    p.setIdProd(rs.getInt("idProd"));
+                    p.setNomeProd(rs.getString("nomeProd"));
+                    p.setCodBarrasProd(rs.getString("codBarrasProd"));
+                    p.setValorProd(rs.getDouble("valor"));
+                    p.setCodFornecedor(rs.getInt("idFornecedor"));
+                    p.setNcmProd(rs.getString("ncmProd"));
+                    listaProdutos.add(p);
+                    System.out.println("CodBarrasProd"+p.getCodBarrasProd());
+                    System.out.println("ncm"+p.getNcmProd());
+                    System.out.println("valor"+p.getValorProd());
+                    System.out.println("id"+p.getIdProd());
+                    System.out.println("codForn"+p.getCodFornecedor());
                 }
             }
             return listaProdutos;
